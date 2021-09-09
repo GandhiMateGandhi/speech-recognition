@@ -1,0 +1,109 @@
+#root, .App, .ant-layout {
+  height: 100%;
+}
+
+.App {
+  h2 {
+    margin: 0;
+  }
+
+  .Layout {
+    padding: 24px 0;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+  }
+
+  .ant-layout {
+    background: #fff;
+  }
+
+  .ant-layout-header {
+    background: #f0f2f5;
+    padding: 0 64px;
+  }
+
+  .Logo {
+    display: grid;
+    grid-template-columns: 1fr 20fr;
+
+    h1 {
+      text-align: center;
+      font-weight: 700;
+      display: inline-block;
+      margin-left: -45px;
+    }
+
+    img {
+      width: 45px;
+      height: 50px;
+      margin: 6px;
+    }
+  }
+
+  .ant-switch {
+    margin: 20px 0;
+
+    svg {
+      font-size: 14px;
+    }
+  }
+
+  .SpeechSection {
+    padding: 0 20px;
+
+    .ButtonSection {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ant-card {
+      background-color: #d6e9ff;
+      border-radius: 15px;
+      text-align: center;
+
+      svg {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .ListSection {
+    //margin-top: 58px;
+    padding: 0 20px;
+
+    .ant-card {
+      border-radius: 15px;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+      margin-top: 18px;
+
+      .ant-form {
+        margin-top: 14px;
+        min-width: 150px;
+
+        .AddTag {
+          margin-bottom: 0;
+        }
+      }
+
+      .ant-skeleton {
+        min-width: 150px;
+      }
+
+      .Card {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+
+
+        h2 {
+          line-height: 30px;
+        }
+
+        svg {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}

@@ -10,7 +10,9 @@
   .Layout {
     padding: 24px 0;
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 4fr 2fr;
+    max-width: 1440px;
+    margin: auto;
   }
 
   .ant-layout {
@@ -57,6 +59,36 @@
       align-items: center;
     }
 
+    .Text {
+      font-size: 20px;
+
+      &__italic {
+        color: #868686;
+      }
+
+      .WhiteListWord {
+        display: inline-block;
+        background: #fff;
+        color: #009dff;
+        border-radius: 5px;
+        line-height: 25px;
+        height: 30px;
+        padding: 0 2px;
+        margin: 0 2px;
+      }
+
+      .BlackListWord {
+        display: inline-block;
+        background: #f05875;
+        color: #fff;
+        border-radius: 5px;
+        line-height: 25px;
+        height: 30px;
+        padding: 0 2px;
+        margin: 0 2px;
+      }
+    }
+
     .ant-card {
       background-color: #d6e9ff;
       border-radius: 15px;
@@ -90,7 +122,7 @@
         min-width: 150px;
       }
 
-      .Card {
+      .CardTitle {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
@@ -103,6 +135,11 @@
         svg {
           font-size: 20px;
         }
+      }
+
+      .Tag {
+        margin-top: 6px;
+        font-size: 16px;
       }
     }
   }

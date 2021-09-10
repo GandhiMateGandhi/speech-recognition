@@ -7,76 +7,61 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faComment} from "@fortawesome/free-regular-svg-icons";
 
 const Main = () => {
-    const [recognitionStarted, setRecognitionStarted] = useState(false);
+    const [isRecognitionStarted, setRecognitionStarted] = useState(false);
     let recognitionResult = '';
 
     // const [recognitionResult, setRecognitionResult] = useState('');
-    const [recognitionTextResult, setRecognitionTextResult] = useState('');
+    const [recognitionTextResult, setRecognitionTextResult] = useState([]);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
     const [isBlackListActive, setBlackListActive] = useState(false);
     const [whiteList, setWhiteList] = useState([]);
     const [blackList, setBlackList] = useState([]);
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    // const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+    const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
     const recognition = new SpeechRecognition();
 
     recognition.lang = 'ru-RU';
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 5;
-    let colors = {};
 
-    colors['красный'] = 'red';
-    colors['оранжевый'] = 'orange';
-    colors['желтый'] = 'yellow';
-    colors['жёлтый'] = 'yellow';
-    colors['зеленый'] = 'green';
-    colors['зелёный'] = 'green';
-    colors['синий'] = 'blue';
-
-
-    const onStartRecordClick = () => {
-        if (recognitionStarted) {
+    const onStartRecordClick = (checked) => {
+        if (isRecognitionStarted) {
             recognition.stop();
-            setRecognitionStarted(false)
+            setRecognitionStarted(checked)
         } else {
             recognition.start();
-            setRecognitionStarted(true)
+            setRecognitionStarted(checked)
         }
     }
 
-    recognition.onresult = (event) => {
+    // useEffect(() => {
+    //     if (isRecognitionStarted) {
+    //         console.log('inside useeffect')
+    //         const timer = setTimeout(() => setRecognitionStarted(false), 3000);
+    //
+    //         return () => clearTimeout(timer);
+    //     }
+    // })
+    // recognition.stop();
 
+    recognition.onresult = (event) => {
         let recognitionTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
-
             let transcript = event.results[i][0].transcript;
 
             if (event.results[i].isFinal) {
-
                 const trimmedTranscript = transcript.trim();
                 const transcriptArray = trimmedTranscript.split(' ');
 
-                transcriptArray.forEach(transcript => {
-                    const lowerCaseTranscript = transcript.toLocaleLowerCase();
-
-                    // if ( colors[lowerCaseTranscript] ) {
-                    //     recognitionResult += ` <span class="transcript" style="background-color: ${colors[lowerCaseTranscript]};">` + transcript + `</span>`;
-                    // } else {
-                    recognitionResult += ' ' + transcript;
-                    // }
-                    // setRecognitionResult(`${recognitionResult} ${transcript}`)
-
-                });
-
+                transcriptArray.forEach(transcript => recognitionResult += ' ' + transcript);
             } else {
                 recognitionTranscript += transcript;
             }
-
         }
-        setRecognitionTextResult(`${recognitionTextResult} ${recognitionResult} ${recognitionTranscript}`)
+        setRecognitionTextResult([...recognitionTextResult, recognitionResult, recognitionTranscript])
     };
 
     recognition.onspeechend = () => {
@@ -88,12 +73,27 @@ const Main = () => {
     //     alert(`произошла ошибка: ${event.error}, пожалуйста, перезагрузите страницу :)`);
     // };
 
-    console.log(whiteList, blackList)
+    const TextComponent = () => {
+        return <div className="Text"> {recognitionTextResult.map((item, index) => {
+            if (index === 0) {
+                const textArray = item.split(' ');
+
+                return textArray.map(word => {
+                    if (whiteList.includes(word.toLocaleLowerCase())) {
+                        return <div className="WhiteListWord">{word + ' '}</div>
+                    } else if (blackList.includes(word.toLocaleLowerCase())) {
+                        return <div className="BlackListWord">{word + ' '}</div>
+                    } else return <>{word + ' '}</>
+                })
+            } else return <i className="Text__italic">{item}</i>
+        })}
+        </div>
+    }
 
 
-    const ListForm = ({list, setList}) => {
+    const ListForm = ({setList}) => {
         const onFinish = (values) => {
-            setList([...list, values.tag])
+            setList(prev => [...prev, values.tag])
         }
 
         return <Form onFinish={onFinish}>
@@ -117,6 +117,7 @@ const Main = () => {
 
         return list.map((tag, index) => {
             return <Tag
+                className="Tag"
                 key={index}
                 closable
                 onClose={() => onTagClose(tag)}
@@ -138,34 +139,36 @@ const Main = () => {
                 <Layout className="Layout">
                     <div className="SpeechSection">
                         <div className="ButtonSection">
-                            <Switch onClick={onStartRecordClick}
+                            <Switch onChange={onStartRecordClick}
+                                    checked={isRecognitionStarted}
                                     unCheckedChildren={<AudioMutedOutlined/>}
                                     checkedChildren={<AudioOutlined/>}/>
-                            <a onClick={() => setRecognitionTextResult('')}>
+                            <a onClick={() => setRecognitionTextResult([])}>
                                 <ReloadOutlined style={{fontSize: 20}}/>
                             </a>
                         </div>
                         <Card bordered={false}>{recognitionTextResult.length === 0 ?
                             <h2>Включите микрофон для начала распознавания текста
-                                <FontAwesomeIcon style={{marginLeft: 6}} icon={faComment}/></h2> :
-                            <h3>{recognitionTextResult}</h3>}</Card>
+                                <FontAwesomeIcon style={{marginLeft: 6}} icon={faComment}/>
+                            </h2> : <TextComponent />
+                        }</Card>
                     </div>
                     <div className="ListSection">
                         <Card bordered={false}>
-                            <div className="Card">
+                            <div className="CardTitle">
                                 <h2>White list </h2>
-                                <a onClick={() => setWhiteListActive(!isWhiteListActive)}><EditOutlined/></a>
+                                <a onClick={() => setWhiteListActive(isWhiteListActive => !isWhiteListActive)}><EditOutlined/></a>
                             </div>
                             <TagList list={whiteList} setList={setWhiteList}/>
-                            {isWhiteListActive ? <ListForm list={whiteList} setList={setWhiteList}/> : <Skeleton/>}
+                            {isWhiteListActive ? <ListForm setList={setWhiteList}/> : <Skeleton/>}
                         </Card>
                         <Card bordered={false}>
-                            <div className="Card">
+                            <div className="CardTitle">
                                 <h2>Black list </h2>
-                                <a onClick={() => setBlackListActive(!isBlackListActive)}><EditOutlined/></a>
+                                <a onClick={() => setBlackListActive(isBlackListActive => !isBlackListActive)}><EditOutlined/></a>
                             </div>
                             <TagList list={blackList} setList={setBlackList}/>
-                            {isBlackListActive ? <ListForm list={blackList} setList={setBlackList}/> : <Skeleton/>}
+                            {isBlackListActive ? <ListForm setList={setBlackList}/> : <Skeleton/>}
                         </Card>
                     </div>
                 </Layout>

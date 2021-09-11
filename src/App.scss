@@ -59,6 +59,22 @@
       align-items: center;
     }
 
+    .TextScroll {
+      background: #ffffff;
+      border-radius: 15px;
+      margin-top: 25px;
+      overflow-y: auto;
+      max-height: 550px;
+
+      .Text {
+        padding: 10px 20px;
+        border-bottom: 1px solid #dfdfdf;
+        background: #f0f2f5;
+        border-radius: 15px;
+        margin-bottom: 10px;
+      }
+    }
+
     .Text {
       font-size: 20px;
 

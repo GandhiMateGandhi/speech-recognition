@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Content, Footer, Header} from "antd/es/layout/layout";
-import {Button, Card, Form, Input, Layout, Skeleton, Switch, Tag} from "antd";
+import {Button, Card, Form, Input, Layout, message, Skeleton, Switch, Tag} from "antd";
 import {AudioMutedOutlined, AudioOutlined, EditOutlined, ReloadOutlined} from "@ant-design/icons";
 import logo from '../img/logo_letai_blue.png'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -12,6 +12,7 @@ const Main = () => {
 
     // const [recognitionResult, setRecognitionResult] = useState('');
     const [recognitionTextResult, setRecognitionTextResult] = useState([]);
+    const [recognitionList, setRecognitionList] = useState([]);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
     const [isBlackListActive, setBlackListActive] = useState(false);
     const [whiteList, setWhiteList] = useState([]);
@@ -26,25 +27,14 @@ const Main = () => {
     recognition.interimResults = true;
     recognition.maxAlternatives = 5;
 
-    const onStartRecordClick = (checked) => {
-        if (isRecognitionStarted) {
-            recognition.stop();
-            setRecognitionStarted(checked)
-        } else {
-            recognition.start();
-            setRecognitionStarted(checked)
-        }
-    }
-
     // useEffect(() => {
     //     if (isRecognitionStarted) {
     //         console.log('inside useeffect')
     //         const timer = setTimeout(() => setRecognitionStarted(false), 3000);
-    //
+    //         recognition.stop();
     //         return () => clearTimeout(timer);
     //     }
     // })
-    // recognition.stop();
 
     recognition.onresult = (event) => {
         let recognitionTranscript = '';
@@ -56,12 +46,13 @@ const Main = () => {
                 const trimmedTranscript = transcript.trim();
                 const transcriptArray = trimmedTranscript.split(' ');
 
-                transcriptArray.forEach(transcript => recognitionResult += ' ' + transcript);
+                transcriptArray.forEach(transcript => recognitionResult += ` ${transcript}`);
             } else {
                 recognitionTranscript += transcript;
             }
         }
         setRecognitionTextResult([...recognitionTextResult, recognitionResult, recognitionTranscript])
+
     };
 
     recognition.onspeechend = () => {
@@ -73,12 +64,28 @@ const Main = () => {
     //     alert(`произошла ошибка: ${event.error}, пожалуйста, перезагрузите страницу :)`);
     // };
 
-    const TextComponent = () => {
-        return <div className="Text"> {recognitionTextResult.map((item, index) => {
+    useEffect(() => {
+    }, [])
+
+    const onStartRecordClick = (checked) => {
+        if (isRecognitionStarted) {
+            recognition.stop();
+
+            setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
+            setRecognitionTextResult([])
+            setRecognitionStarted(checked)
+        } else {
+            recognition.start();
+            setRecognitionStarted(checked)
+        }
+    }
+
+    const TextComponent = ({text}) => {
+        return <div className="Text"> {text?.map((item, index) => {
             if (index === 0) {
                 const textArray = item.split(' ');
 
-                return textArray.map(word => {
+                return textArray?.map(word => {
                     if (whiteList.includes(word.toLocaleLowerCase())) {
                         return <div className="WhiteListWord">{word + ' '}</div>
                     } else if (blackList.includes(word.toLocaleLowerCase())) {
@@ -90,10 +97,22 @@ const Main = () => {
         </div>
     }
 
+    const TextScroll = () => {
+        return <div className="TextScroll">
+            {recognitionList.map(item => {
+                return <TextComponent text={item}/>
+            })}
+        </div>
+    }
 
     const ListForm = ({setList}) => {
         const onFinish = (values) => {
-            setList(prev => [...prev, values.tag])
+            return setList(prev => {
+                if (prev.includes(values.tag)) {
+                    message.warning(`${values.tag} уже есть в списке!`);
+                    return prev
+                } else return [...prev, values.tag]
+            })
         }
 
         return <Form onFinish={onFinish}>
@@ -115,7 +134,7 @@ const Main = () => {
             setList(list.filter(item => item !== tag))
         }
 
-        return list.map((tag, index) => {
+        return list?.map((tag, index) => {
             return <Tag
                 className="Tag"
                 key={index}
@@ -150,8 +169,10 @@ const Main = () => {
                         <Card bordered={false}>{recognitionTextResult.length === 0 ?
                             <h2>Включите микрофон для начала распознавания текста
                                 <FontAwesomeIcon style={{marginLeft: 6}} icon={faComment}/>
-                            </h2> : <TextComponent />
+                            </h2> : <TextComponent text={recognitionTextResult}/>
                         }</Card>
+
+                        <TextScroll />
                     </div>
                     <div className="ListSection">
                         <Card bordered={false}>

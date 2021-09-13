@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Content, Footer, Header} from "antd/es/layout/layout";
-import {Button, Card, Form, Input, Layout, message, Skeleton, Switch, Tag} from "antd";
+import {Button, Card, Form, Input, Layout, message, Progress, Skeleton, Switch, Tag} from "antd";
 import {AudioMutedOutlined, AudioOutlined, EditOutlined, ReloadOutlined} from "@ant-design/icons";
 import logo from '../img/logo_letai_blue.png'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -51,7 +51,7 @@ const Main = () => {
                 recognitionTranscript += transcript;
             }
         }
-        setRecognitionTextResult([...recognitionTextResult, recognitionResult, recognitionTranscript])
+        setRecognitionTextResult([...recognitionTextResult, recognitionResult.trim(), recognitionTranscript])
 
     };
 
@@ -64,15 +64,20 @@ const Main = () => {
     //     alert(`произошла ошибка: ${event.error}, пожалуйста, перезагрузите страницу :)`);
     // };
 
-    useEffect(() => {
-    }, [])
-
     const onStartRecordClick = (checked) => {
         if (isRecognitionStarted) {
             recognition.stop();
 
-            setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
-            setRecognitionTextResult([])
+            if (!!recognitionTextResult.length) {
+                setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
+                if (recognitionList.length > 15) {
+                    setRecognitionList(prev => {
+                        return prev.slice(0, -1)
+                    })
+                }
+
+                setRecognitionTextResult([])
+            }
             setRecognitionStarted(checked)
         } else {
             recognition.start();
@@ -81,37 +86,56 @@ const Main = () => {
     }
 
     const TextComponent = ({text}) => {
-        return <div className="Text"> {text?.map((item, index) => {
-            if (index === 0) {
-                const textArray = item.split(' ');
+        // console.log(text)
+        return <div className="Text">
+            {text?.map((item, index) => {
+                if (index === 0) {
+                    const textArray = item.split(' ');
 
-                return textArray?.map(word => {
-                    if (whiteList.includes(word.toLocaleLowerCase())) {
-                        return <div className="WhiteListWord">{word + ' '}</div>
-                    } else if (blackList.includes(word.toLocaleLowerCase())) {
-                        return <div className="BlackListWord">{word + ' '}</div>
-                    } else return <>{word + ' '}</>
-                })
-            } else return <i className="Text__italic">{item}</i>
-        })}
+                    return textArray?.map((word) => {
+                        if (whiteList.includes(word.toLocaleLowerCase())) {
+                            return <div key={word} className="WhiteListWord">{word + ' '}</div>
+                        } else if (blackList.includes(word.toLocaleLowerCase())) {
+                            return <div key={word} className="BlackListWord">{word + ' '}</div>
+                        } else return <>{word + ' '}</>
+                    })
+
+                } else return <div key={item} className="Text__italic">{item}</div>
+            })}
         </div>
     }
 
     const TextScroll = () => {
         return <div className="TextScroll">
-            {recognitionList.map(item => {
-                return <TextComponent text={item}/>
+            {recognitionList.map((item, index) => {
+                return <TextComponent key={index} text={item}/>
             })}
+        </div>
+    }
+
+    const BarChart = ({list, text}) => {
+        if (list.length === 0) {
+            return <Skeleton/>
+        } else return <div className="BarChartList">{list?.map((item, index) => {
+            // let listLength = text
+
+            // console.log(listLength)
+
+            return <div key={index} className="BarChart">
+                <span className="BarChartName">{item}</span>
+                <Progress percent={50} showInfo={false}/>
+            </div>
+        })}
         </div>
     }
 
     const ListForm = ({setList}) => {
         const onFinish = (values) => {
             return setList(prev => {
-                if (prev.includes(values.tag)) {
+                if (prev.includes(values?.tag)) {
                     message.warning(`${values.tag} уже есть в списке!`);
                     return prev
-                } else return [...prev, values.tag]
+                } else return [...prev, values.tag.trim()]
             })
         }
 
@@ -129,13 +153,14 @@ const Main = () => {
         </Form>
     }
 
-    const TagList = ({list, setList}) => {
+    const TagList = ({list, setList, color}) => {
         const onTagClose = (tag) => {
             setList(list.filter(item => item !== tag))
         }
 
         return list?.map((tag, index) => {
             return <Tag
+                color={color}
                 className="Tag"
                 key={index}
                 closable
@@ -166,30 +191,39 @@ const Main = () => {
                                 <ReloadOutlined style={{fontSize: 20}}/>
                             </a>
                         </div>
-                        <Card bordered={false}>{recognitionTextResult.length === 0 ?
-                            <h2>Включите микрофон для начала распознавания текста
+                        <Card className="RecognitionCard" bordered={false}>{recognitionTextResult.length === 0 ?
+                            <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
                                 <FontAwesomeIcon style={{marginLeft: 6}} icon={faComment}/>
                             </h2> : <TextComponent text={recognitionTextResult}/>
                         }</Card>
 
-                        <TextScroll />
+                        <TextScroll/>
                     </div>
+
                     <div className="ListSection">
-                        <Card bordered={false}>
+                        <Card className="WhiteList" bordered={false}>
                             <div className="CardTitle">
-                                <h2>White list </h2>
+                                <h2>Белый список</h2>
                                 <a onClick={() => setWhiteListActive(isWhiteListActive => !isWhiteListActive)}><EditOutlined/></a>
                             </div>
-                            <TagList list={whiteList} setList={setWhiteList}/>
-                            {isWhiteListActive ? <ListForm setList={setWhiteList}/> : <Skeleton/>}
+                            {isWhiteListActive ?
+                                <div className="TagForm">
+                                    <TagList list={whiteList} setList={setWhiteList} color={'blue'}/>
+                                    <ListForm setList={setWhiteList}/>
+                                </div> :
+                                <BarChart list={whiteList} text={recognitionTextResult}/>}
                         </Card>
-                        <Card bordered={false}>
+                        <Card className="BlackList" bordered={false}>
                             <div className="CardTitle">
-                                <h2>Black list </h2>
+                                <h2>Черный список</h2>
                                 <a onClick={() => setBlackListActive(isBlackListActive => !isBlackListActive)}><EditOutlined/></a>
                             </div>
-                            <TagList list={blackList} setList={setBlackList}/>
-                            {isBlackListActive ? <ListForm setList={setBlackList}/> : <Skeleton/>}
+                            {isBlackListActive ?
+                                <div className="TagForm">
+                                    <TagList list={blackList} setList={setBlackList} color={'red'}/>
+                                    <ListForm setList={setBlackList}/>
+                                </div> :
+                                <BarChart list={blackList} text={recognitionTextResult}/>}
                         </Card>
                     </div>
                 </Layout>

@@ -59,19 +59,56 @@
       align-items: center;
     }
 
+    .RecognitionCard {
+      padding: 28px 0;
+
+      .Text__italic {
+        color: #868686;
+      }
+    }
+
     .TextScroll {
       background: #ffffff;
       border-radius: 15px;
       margin-top: 25px;
       overflow-y: auto;
-      max-height: 550px;
+      max-height: 500px;
 
       .Text {
         padding: 10px 20px;
         border-bottom: 1px solid #dfdfdf;
         background: #f0f2f5;
-        border-radius: 15px;
+        border-radius: 10px;
         margin-bottom: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+        margin-right: 5px;
+
+        &::-webkit-scrollbar {
+          width: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #dfdfdf;
+          border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: #c5c5c5;
+        }
+      }
+
+      &::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #dfdfdf;
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: #c5c5c5;
       }
     }
 
@@ -79,7 +116,7 @@
       font-size: 20px;
 
       &__italic {
-        color: #868686;
+        display: inline;
       }
 
       .WhiteListWord {
@@ -108,7 +145,7 @@
     .ant-card {
       background-color: #d6e9ff;
       border-radius: 15px;
-      text-align: center;
+      //text-align: center;
 
       svg {
         font-size: 20px;
@@ -120,10 +157,54 @@
     //margin-top: 58px;
     padding: 0 20px;
 
+    .WhiteList {
+      .ant-progress-bg {
+        background-image: linear-gradient(to right, rgb(16, 142, 233) 0%, rgb(135, 208, 104) 100%);
+      }
+    }
+
+    .BlackList {
+      .ant-progress-bg {
+        background-image: linear-gradient(to right, rgb(233, 153, 16) 0%, rgb(199, 31, 31) 100%);
+      }
+    }
+
     .ant-card {
       border-radius: 15px;
       box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
       margin-top: 18px;
+
+      .BarChartList {
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: 10px;
+
+        &::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #dfdfdf;
+          border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: #c5c5c5;
+        }
+      }
+
+      .BarChart {
+        display: flex;
+        flex-direction: column;
+        margin-top: 4px;
+      }
+
+      .BarChartName {
+        font-size: 16px;
+        display: inline-block;
+        height: 16px;
+        line-height: 16px;
+      }
 
       .ant-form {
         margin-top: 14px;
@@ -156,6 +237,10 @@
       .Tag {
         margin-top: 6px;
         font-size: 16px;
+        border-radius: 15px;
+        padding: 2px 6px;
+        line-height: 18px;
+        height: 26px;
       }
     }
   }

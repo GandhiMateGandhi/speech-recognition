@@ -1,18 +1,24 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Content, Footer, Header} from "antd/es/layout/layout";
 import {Button, Card, Form, Input, Layout, message, Progress, Skeleton, Switch, Tag} from "antd";
-import {AudioMutedOutlined, AudioOutlined, EditOutlined, ReloadOutlined} from "@ant-design/icons";
-import logo from '../img/logo_letai_blue.png'
+import {AudioMutedOutlined, AudioOutlined} from "@ant-design/icons";
+import logo from '../img/logo.png'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faComment} from "@fortawesome/free-regular-svg-icons";
+import {faArrowLeft, faBackspace, faEdit, faMicrophoneAlt, faUndoAlt} from "@fortawesome/free-solid-svg-icons";
 
 const Main = () => {
     const [isRecognitionStarted, setRecognitionStarted] = useState(false);
     let recognitionResult = '';
+    let getRecognitionList = JSON.parse(localStorage.getItem('recognitionList'))
 
-    // const [recognitionResult, setRecognitionResult] = useState('');
+    if (getRecognitionList === null) {
+        getRecognitionList = []
+    }
+    ;
+
     const [recognitionTextResult, setRecognitionTextResult] = useState([]);
-    const [recognitionList, setRecognitionList] = useState([]);
+    const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
     const [isBlackListActive, setBlackListActive] = useState(false);
     const [whiteList, setWhiteList] = useState([]);
@@ -26,15 +32,7 @@ const Main = () => {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 5;
-
-    // useEffect(() => {
-    //     if (isRecognitionStarted) {
-    //         console.log('inside useeffect')
-    //         const timer = setTimeout(() => setRecognitionStarted(false), 3000);
-    //         recognition.stop();
-    //         return () => clearTimeout(timer);
-    //     }
-    // })
+    const formRef = useRef(null);
 
     recognition.onresult = (event) => {
         let recognitionTranscript = '';
@@ -64,12 +62,24 @@ const Main = () => {
     //     alert(`произошла ошибка: ${event.error}, пожалуйста, перезагрузите страницу :)`);
     // };
 
-    const onStartRecordClick = (checked) => {
+
+    useEffect(() => {
+        // localStorage.setItem('recognitionList', JSON.stringify(recognitionTextResult))
+    }, [getRecognitionList])
+
+
+    const recognitionFunc = () => {
         if (isRecognitionStarted) {
             recognition.stop();
 
             if (!!recognitionTextResult.length) {
-                setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
+                const filteredTextResult = recognitionTextResult.filter(item => item)
+                setRecognitionList(prev => [filteredTextResult, ...prev])
+
+                getRecognitionList.unshift(filteredTextResult)
+
+                localStorage.setItem('recognitionList', JSON.stringify(getRecognitionList))
+
                 if (recognitionList.length > 15) {
                     setRecognitionList(prev => {
                         return prev.slice(0, -1)
@@ -78,11 +88,53 @@ const Main = () => {
 
                 setRecognitionTextResult([])
             }
-            setRecognitionStarted(checked)
+            setRecognitionStarted(false)
         } else {
             recognition.start();
-            setRecognitionStarted(checked)
+            setRecognitionStarted(true)
         }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (!e.repeat)
+            if (e.key === ' ') {
+                console.log(`Key "${e.key}"`);
+                // recognitionFunc()
+            } else
+                return null
+    });
+
+    const onStartRecordClick = (checked) => {
+        recognitionFunc()
+        // if (isRecognitionStarted) {
+        //     recognition.stop();
+        //
+        //     if (!!recognitionTextResult.length) {
+        //         setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
+        //         if (recognitionList.length > 15) {
+        //             setRecognitionList(prev => {
+        //                 return prev.slice(0, -1)
+        //             })
+        //         }
+        //
+        //         setRecognitionTextResult([])
+        //     }
+        //     setRecognitionStarted(checked)
+        // } else {
+        //     recognition.start();
+        //     setRecognitionStarted(checked)
+        // }
+    }
+
+    const onKeyWordEditClick = (listActive, setListActive) => {
+        setListActive(prev => !prev)
+
+        formRef?.current?.focus();
+    }
+
+    const onLocalStorageClear = () => {
+        localStorage.removeItem('recognitionList')
+        setRecognitionList([])
     }
 
     const TextComponent = ({text}) => {
@@ -131,6 +183,8 @@ const Main = () => {
 
     const ListForm = ({setList}) => {
         const onFinish = (values) => {
+            formRef.current.focus();
+
             return setList(prev => {
                 if (prev.includes(values?.tag)) {
                     message.warning(`${values.tag} уже есть в списке!`);
@@ -143,7 +197,7 @@ const Main = () => {
             <Form.Item
                 name="tag"
                 label={<b>Ключевые слова</b>}>
-                <Input/>
+                <Input autoFocus ref={formRef}/>
             </Form.Item>
             <Form.Item className="AddTag">
                 <Button shape="round" type="primary" htmlType="submit">
@@ -176,7 +230,6 @@ const Main = () => {
             <Header className="header">
                 <div className="Logo">
                     <img src={logo} alt="Logo"/>
-                    <h1>Speech to text Tattelecom Kit</h1>
                 </div>
             </Header>
             <Content style={{padding: '0 50px'}}>
@@ -187,15 +240,23 @@ const Main = () => {
                                     checked={isRecognitionStarted}
                                     unCheckedChildren={<AudioMutedOutlined/>}
                                     checkedChildren={<AudioOutlined/>}/>
+
                             <a onClick={() => setRecognitionTextResult([])}>
-                                <ReloadOutlined style={{fontSize: 20}}/>
+                                <FontAwesomeIcon className="ButtonSection_Clear" icon={faBackspace}/>
                             </a>
                         </div>
-                        <Card className="RecognitionCard" bordered={false}>{recognitionTextResult.length === 0 ?
-                            <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
-                                <FontAwesomeIcon style={{marginLeft: 6}} icon={faComment}/>
-                            </h2> : <TextComponent text={recognitionTextResult}/>
-                        }</Card>
+                        <Card className="RecognitionCard" bordered={false}>
+                            {recognitionTextResult.length === 0 ?
+                                <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
+                                    <FontAwesomeIcon style={{marginLeft: 6}}
+                                                     icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
+                                </h2> : <TextComponent text={recognitionTextResult}/>
+                            }</Card>
+                        {recognitionList.length > 0 && <div className="UndoBlock">
+                            <a onClick={onLocalStorageClear}>
+                                <FontAwesomeIcon icon={faUndoAlt}/>
+                            </a>
+                        </div>}
 
                         <TextScroll/>
                     </div>
@@ -204,7 +265,9 @@ const Main = () => {
                         <Card className="WhiteList" bordered={false}>
                             <div className="CardTitle">
                                 <h2>Белый список</h2>
-                                <a onClick={() => setWhiteListActive(isWhiteListActive => !isWhiteListActive)}><EditOutlined/></a>
+                                <a onClick={() => onKeyWordEditClick(isWhiteListActive, setWhiteListActive)}>
+                                    <FontAwesomeIcon icon={isWhiteListActive ? faArrowLeft : faEdit}/>
+                                </a>
                             </div>
                             {isWhiteListActive ?
                                 <div className="TagForm">
@@ -216,7 +279,9 @@ const Main = () => {
                         <Card className="BlackList" bordered={false}>
                             <div className="CardTitle">
                                 <h2>Черный список</h2>
-                                <a onClick={() => setBlackListActive(isBlackListActive => !isBlackListActive)}><EditOutlined/></a>
+                                <a onClick={() => onKeyWordEditClick(isBlackListActive, setBlackListActive)}>
+                                    <FontAwesomeIcon icon={isBlackListActive ? faArrowLeft : faEdit}/>
+                                </a>
                             </div>
                             {isBlackListActive ?
                                 <div className="TagForm">

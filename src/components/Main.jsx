@@ -11,18 +11,27 @@ const Main = () => {
     const [isRecognitionStarted, setRecognitionStarted] = useState(false);
     let recognitionResult = '';
     let getRecognitionList = JSON.parse(localStorage.getItem('recognitionList'))
+    let getWhiteList = JSON.parse(localStorage.getItem('whiteList'))
+    let getBlackList = JSON.parse(localStorage.getItem('blackList'))
 
     if (getRecognitionList === null) {
         getRecognitionList = []
     }
-    ;
+
+    if (getWhiteList === null) {
+        getWhiteList = []
+    }
+
+    if (getBlackList === null) {
+        getBlackList = []
+    }
 
     const [recognitionTextResult, setRecognitionTextResult] = useState([]);
     const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
     const [isBlackListActive, setBlackListActive] = useState(false);
-    const [whiteList, setWhiteList] = useState([]);
-    const [blackList, setBlackList] = useState([]);
+    const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
+    const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
@@ -49,7 +58,7 @@ const Main = () => {
                 recognitionTranscript += transcript;
             }
         }
-        setRecognitionTextResult([...recognitionTextResult, recognitionResult.trim(), recognitionTranscript])
+        setRecognitionTextResult([...recognitionTextResult, recognitionResult.trim().toLocaleLowerCase(), recognitionTranscript.toLocaleLowerCase()])
 
     };
 
@@ -95,35 +104,17 @@ const Main = () => {
         }
     }
 
-    document.addEventListener('keydown', (e) => {
+    /*document.addEventListener('keydown', (e) => {
         if (!e.repeat)
             if (e.key === ' ') {
                 console.log(`Key "${e.key}"`);
                 // recognitionFunc()
             } else
                 return null
-    });
+    });*/
 
-    const onStartRecordClick = (checked) => {
+    const onStartRecordClick = () => {
         recognitionFunc()
-        // if (isRecognitionStarted) {
-        //     recognition.stop();
-        //
-        //     if (!!recognitionTextResult.length) {
-        //         setRecognitionList(prev => [recognitionTextResult.filter(item => item), ...prev])
-        //         if (recognitionList.length > 15) {
-        //             setRecognitionList(prev => {
-        //                 return prev.slice(0, -1)
-        //             })
-        //         }
-        //
-        //         setRecognitionTextResult([])
-        //     }
-        //     setRecognitionStarted(checked)
-        // } else {
-        //     recognition.start();
-        //     setRecognitionStarted(checked)
-        // }
     }
 
     const onKeyWordEditClick = (listActive, setListActive) => {
@@ -158,28 +149,38 @@ const Main = () => {
     }
 
     const TextScroll = () => {
-        return <div className="TextScroll">
+        return <div className="TextBlock">
             {recognitionList.map((item, index) => {
                 return <TextComponent key={index} text={item}/>
             })}
         </div>
     }
 
-    const BarChart = ({list, text}) => {
+    const BarChart = ({list}) => {
         if (list.length === 0) {
             return <Skeleton/>
         } else return <div className="BarChartList">{list?.map((item, index) => {
-            // let listLength = text
-
-            // console.log(listLength)
+            let textArray = recognitionList.flat().join(', ').split(' ')
+            let barChartLength = textArray.reduce((n, val) => {
+                return n + (val.toLowerCase().replace(/,/g, '') ===
+                    item.toLowerCase().replace(/,/g, ''))
+            }, 0)
 
             return <div key={index} className="BarChart">
-                <span className="BarChartName">{item}</span>
-                <Progress percent={50} showInfo={false}/>
+                <span className="BarChartName">{`${item}: ${barChartLength}`}</span>
+                <Progress percent={barChartLength * 5} showInfo={false}/>
             </div>
         })}
         </div>
     }
+
+    useEffect(() => {
+        localStorage.setItem('whiteList', JSON.stringify(whiteList))
+    }, [getWhiteList, whiteList])
+
+    useEffect(() => {
+        localStorage.setItem('blackList', JSON.stringify(blackList))
+    }, [getBlackList, blackList])
 
     const ListForm = ({setList}) => {
         const onFinish = (values) => {
@@ -196,6 +197,7 @@ const Main = () => {
         return <Form onFinish={onFinish}>
             <Form.Item
                 name="tag"
+                rules={[{required: true, message: 'Ключевое слово не может быть пустым!'}]}
                 label={<b>Ключевые слова</b>}>
                 <Input autoFocus ref={formRef}/>
             </Form.Item>
@@ -235,30 +237,36 @@ const Main = () => {
             <Content style={{padding: '0 50px'}}>
                 <Layout className="Layout">
                     <div className="SpeechSection">
-                        <div className="ButtonSection">
-                            <Switch onChange={onStartRecordClick}
-                                    checked={isRecognitionStarted}
-                                    unCheckedChildren={<AudioMutedOutlined/>}
-                                    checkedChildren={<AudioOutlined/>}/>
+                        <div className="RecognitionSection">
 
-                            <a onClick={() => setRecognitionTextResult([])}>
-                                <FontAwesomeIcon className="ButtonSection_Clear" icon={faBackspace}/>
-                            </a>
+                            <div className="ControlBlock">
+                                <Switch onChange={onStartRecordClick}
+                                        checked={isRecognitionStarted}
+                                        unCheckedChildren={<AudioMutedOutlined/>}
+                                        checkedChildren={<AudioOutlined/>}/>
+
+                                <a onClick={() => setRecognitionTextResult([])}>
+                                    <FontAwesomeIcon className="ControlBlock_Clear" icon={faBackspace}/>
+                                </a>
+                            </div>
+                            <Card className="RecognitionBlock" bordered={false}>
+                                {recognitionTextResult.length === 0 ?
+                                    <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
+                                        <FontAwesomeIcon style={{marginLeft: 6}}
+                                                         icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
+                                    </h2> : <TextComponent text={recognitionTextResult}/>
+                                }</Card>
                         </div>
-                        <Card className="RecognitionCard" bordered={false}>
-                            {recognitionTextResult.length === 0 ?
-                                <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
-                                    <FontAwesomeIcon style={{marginLeft: 6}}
-                                                     icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
-                                </h2> : <TextComponent text={recognitionTextResult}/>
-                            }</Card>
-                        {recognitionList.length > 0 && <div className="UndoBlock">
-                            <a onClick={onLocalStorageClear}>
-                                <FontAwesomeIcon icon={faUndoAlt}/>
-                            </a>
-                        </div>}
 
-                        <TextScroll/>
+                        <div className="TextSection">
+                            {recognitionList.length > 0 && <div className="UndoBlock">
+                                <a onClick={onLocalStorageClear} title="Очистить историю распознаваний">
+                                    <FontAwesomeIcon className="UndoBlock_Icon" icon={faUndoAlt}/>
+                                </a>
+                            </div>}
+
+                            <TextScroll/>
+                        </div>
                     </div>
 
                     <div className="ListSection">

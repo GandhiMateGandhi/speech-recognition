@@ -31,21 +31,21 @@ const SpeechSection = ({
 
                     return textArray?.map((word) => {
                         if (whiteList.includes(word.toLocaleLowerCase())) {
-                            return <div key={word} className="WhiteListWord">{word + ' '}</div>
+                            return <div key={word + 'WhiteListWord'} className="WhiteListWord">{word + ' '}</div>
                         } else if (blackList.includes(word.toLocaleLowerCase())) {
-                            return <div key={word} className="BlackListWord">{word + ' '}</div>
+                            return <div key={word + 'WhiteListWord'} className="BlackListWord">{word + ' '}</div>
                         } else return <>{word + ' '}</>
                     })
 
-                } else return <div key={item} className="Text__italic">{item}</div>
+                } else return <div key={item + 'Text__italic'} className="Text__italic">{item}</div>
             })}
         </div>
     }
 
     const TextScroll = () => {
         return <div className="TextBlock">
-            {recognitionList.map((item, index) => {
-                return <TextComponent key={index} text={item}/>
+            {recognitionList?.map((item, index) => {
+                return <TextComponent key={item} text={item}/>
             })}
         </div>
     }
@@ -77,10 +77,12 @@ const SpeechSection = ({
                 </div>
                 <Card className="RecognitionBlock" bordered={false}>
                     {recognitionTextResult.length === 0 ?
-                        <h2 style={{textAlign: 'center'}}>{isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
+                        <h2 style={{textAlign: 'center'}}>
+                            {isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
                             <FontAwesomeIcon style={{marginLeft: 6}}
                                              icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
-                        </h2> : <TextComponent text={recognitionTextResult}/>
+                        </h2> :
+                        <TextComponent text={recognitionTextResult}/>
                     }</Card>
             </div>
 

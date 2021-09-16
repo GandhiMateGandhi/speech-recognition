@@ -4,16 +4,29 @@ import {Layout} from "antd";
 import logo from '../img/logo.png'
 import SpeechSection from "./SpeechSection";
 import ListSection from "./ListSection";
+import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
 
-const Main = ({recognition}) => {
+// const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+
+// const recognition = new SpeechRecognition();
+const Main = () => {
+
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+    } = useSpeechRecognition();
+
     let getRecognitionList = JSON.parse(localStorage.getItem('recognitionList'))
     let getWhiteList = JSON.parse(localStorage.getItem('whiteList'))
     let getBlackList = JSON.parse(localStorage.getItem('blackList'))
-    // let recognitionResult = '';
-    const [recognitionResult, setRecognitionResult] = useState('');
-    const [recognitionTranscript, setRecognitionTranscript] = useState('')
+    let recognitionResult = '';
+    // const [recognitionResult, setRecognitionResult] = useState('');
+    // const [recognitionTranscript, setRecognitionTranscript] = useState('')
 
     const [isRecognitionStarted, setRecognitionStarted] = useState(false);
+    // const [recognitionTextResult, setRecognitionTextResult] = useState([]);
     const [recognitionTextResult, setRecognitionTextResult] = useState([]);
     const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
@@ -21,6 +34,12 @@ const Main = ({recognition}) => {
     const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
     const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
     const [counter, setCounter] = useState(0)
+
+
+    // recognition.lang = 'ru-RU';
+    // recognition.continuous = true;
+    // recognition.interimResults = true;
+    // recognition.maxAlternatives = 5;
 
     if (getRecognitionList === null) {
         getRecognitionList = []
@@ -34,18 +53,28 @@ const Main = ({recognition}) => {
 
     const onStartRecordClick = () => {
         if (!isRecognitionStarted) {
-            recognition.start();
+            // recognition.start();
             setRecognitionStarted(true)
             setCounter(150)
+
+            return SpeechRecognition.startListening({
+                continuous: true,
+                language: 'ru-RU'
+            })
         }
     }
 
-    const onStopRecordClick = () => {
-        if (isRecognitionStarted) {
-            recognition.stop();
-            recognition.addEventListener('end', () => console.log('recognition end'))
-            onRecognitionStop()
 
+    const onStopRecordClick = () => {
+        // const transcriptArray = transcript.split(' ')
+
+        if (isRecognitionStarted) {
+            setRecognitionList(prev => [transcript, ...prev])
+
+            SpeechRecognition.abortListening()
+            resetTranscript()
+
+            localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList]))
             setRecognitionStarted(false)
         }
     }
@@ -64,37 +93,36 @@ const Main = ({recognition}) => {
             }
             localStorage.setItem('recognitionList', JSON.stringify(getRecognitionList))
 
-            setRecognitionTextResult([])
+            // recognitionTextResult = ''
+            // setRecognitionTextResult([])
         }
     }
 
+    // recognition.onspeechend = () => {
+    //     recognition.stop();
+    // };
 
-    console.log(recognitionTranscript)
+    // recognition.onresult = (event) => {
+    //     let recognitionTranscript = '';
+    //
+    //     for (let i = event.resultIndex; i < event.results.length; i++) {
+    //         let transcript = event.results[i][0].transcript;
+    //
+    //         if (event.results[i].isFinal) {
+    //             const trimmedTranscript = transcript.trim();
+    //             const transcriptArray = trimmedTranscript.split(' ');
+    //
+    //             transcriptArray.forEach(transcript => recognitionResult += ` ${transcript}`);
+    //         } else {
+    //             recognitionTranscript += transcript;
+    //         }
+    //     }
+    //     // setRecognitionTextResult([...recognitionTextResult, recognitionResult.trim().toLocaleLowerCase(), recognitionTranscript.toLocaleLowerCase()])
+    //
+    //
+    // };
+    // console.log(recognitionTextResult)
 
-    recognition.onresult = (event) => {
-        // console.log(event)
-        // let recognitionTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            let transcript = event.results[i][0].transcript;
-
-            if (event.results[i].isFinal) {
-                console.log(transcript)
-                const trimmedTranscript = transcript.trim();
-                const transcriptArray = trimmedTranscript.split(' ');
-
-                console.log(transcriptArray)
-
-                transcriptArray.forEach(transcript => setRecognitionResult(prev => `${prev} ${transcript}`));
-
-            } else {
-                // console.log(transcript)
-                setRecognitionTranscript(prev => `${prev} ${transcript}`);
-            }
-        }
-        setRecognitionTextResult(prev => [...prev, recognitionResult.trim().toLocaleLowerCase(), recognitionTranscript.trim().toLocaleLowerCase()])
-
-    };
 
     // recognition.onerror = (event) => {
     //     recognition.stop();
@@ -108,25 +136,26 @@ const Main = ({recognition}) => {
 
 
     useEffect(() => {
-        let isCancelled = false;
-        const runAsync = async () => {
-            try {
-                if (isRecognitionStarted) {
-                    counter > 0 && setTimeout(() => !isCancelled && setCounter(counter - 1), 1000);
-                    if (counter === 0) {
-                        recognition.stop();
-                        onRecognitionStop()
-                        setRecognitionStarted(false)
-                    }
-                }
-            } catch (e) {
-                if (!isCancelled) {
-                    throw e;
-                }
-            }
-        };
-        runAsync();
-        return () => isCancelled = true;
+        // let isCancelled = false;
+        // const runAsync = async () => {
+        //     try {
+        //         if (isRecognitionStarted) {
+        //             counter > 0 && setTimeout(() => !isCancelled && setCounter(counter - 1), 1000);
+        //             if (counter === 0) {
+        //                 SpeechRecognition.stopListening()
+        //                 // recognition.stop();
+        //                 onRecognitionStop()
+        //                 setRecognitionStarted(false)
+        //             }
+        //         }
+        //     } catch (e) {
+        //         if (!isCancelled) {
+        //             throw e;
+        //         }
+        //     }
+        // };
+        // runAsync();
+        // return () => isCancelled = true;
     }, [counter, isRecognitionStarted]);
 
 
@@ -137,6 +166,7 @@ const Main = ({recognition}) => {
         counter,
         setRecognitionTextResult,
         recognitionTextResult,
+        getRecognitionList,
         recognitionList,
         whiteList,
         blackList,
@@ -148,7 +178,8 @@ const Main = ({recognition}) => {
         setBlackList,
         getWhiteList,
         getBlackList,
-        setRecognitionList
+        setRecognitionList,
+        transcript
     }
 
     return (

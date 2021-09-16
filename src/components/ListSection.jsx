@@ -15,7 +15,7 @@ const ListSection = ({
                          setBlackList,
                          getWhiteList,
                          getBlackList,
-                         recognitionList
+                         getRecognitionList
                      }) => {
 
     const formRef = useRef(null);
@@ -32,7 +32,7 @@ const ListSection = ({
             return <Skeleton/>
         } else return <div className="BarChartList">
             {list?.map((item, index) => {
-                let textArray = recognitionList.flat().join(', ').split(' ')
+                let textArray = getRecognitionList.flat().join(', ').split(' ')
                 let barChartLength = textArray.reduce((n, val) => {
                     return n + (val.toLowerCase().replace(/,/g, '') ===
                         item.toLowerCase().replace(/,/g, ''))

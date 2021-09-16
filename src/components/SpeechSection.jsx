@@ -12,11 +12,15 @@ const SpeechSection = ({
                            counter,
                            setRecognitionTextResult,
                            recognitionTextResult,
-                           recognitionList,
+                           getRecognitionList,
                            whiteList,
                            blackList,
-                           setRecognitionList
+                           setRecognitionList,
+                           transcript,
+                           recognitionList
                        }) => {
+
+    const transcriptArray = transcript.split(' ')
 
     const onLocalStorageClear = () => {
         localStorage.removeItem('recognitionList')
@@ -24,20 +28,15 @@ const SpeechSection = ({
     }
 
     const TextComponent = ({text}) => {
+
+
         return <div className="Text">
             {text?.map((item, index) => {
-                if (index === 0) {
-                    const textArray = item.split(' ');
-
-                    return textArray?.map((word) => {
-                        if (whiteList.includes(word.toLocaleLowerCase())) {
-                            return <div key={word + 'WhiteListWord'} className="WhiteListWord">{word + ' '}</div>
-                        } else if (blackList.includes(word.toLocaleLowerCase())) {
-                            return <div key={word + 'WhiteListWord'} className="BlackListWord">{word + ' '}</div>
-                        } else return <>{word + ' '}</>
-                    })
-
-                } else return <div key={item + 'Text__italic'} className="Text__italic">{item}</div>
+                if (whiteList.includes(item.toLocaleLowerCase())) {
+                    return <div key={index} className="WhiteListWord">{item + ' '}</div>
+                } else if (blackList.includes(item.toLocaleLowerCase())) {
+                    return <div key={index} className="BlackListWord">{item + ' '}</div>
+                } else return <div style={{display: 'inline'}} key={index}>{item + ' '}</div>
             })}
         </div>
     }
@@ -45,7 +44,7 @@ const SpeechSection = ({
     const TextScroll = () => {
         return <div className="TextBlock">
             {recognitionList?.map((item, index) => {
-                return <TextComponent key={item} text={item}/>
+                return <TextComponent key={index} text={item.split(' ')}/>
             })}
         </div>
     }
@@ -62,8 +61,6 @@ const SpeechSection = ({
                                 checkedChildren={<AudioOutlined/>}
                                 autoFocus={true}/>
 
-                        {/*<button onClick={onStartRecordClick}>start</button>*/}
-                        {/*<button onClick={onStopRecordClick}>stop</button>*/}
                         {
                             isRecognitionStarted &&
                             <div className="Counter">
@@ -76,18 +73,20 @@ const SpeechSection = ({
                     </a>
                 </div>
                 <Card className="RecognitionBlock" bordered={false}>
-                    {recognitionTextResult.length === 0 ?
+                    {!transcript ?
                         <h2 style={{textAlign: 'center'}}>
                             {isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
                             <FontAwesomeIcon style={{marginLeft: 6}}
                                              icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
                         </h2> :
-                        <TextComponent text={recognitionTextResult}/>
-                    }</Card>
+                        <TextComponent text={transcript.split(' ')}/>
+                    }
+                </Card>
             </div>
 
             <div className="TextSection">
-                {recognitionList.length > 0 && <div className="UndoBlock">
+                {recognitionList.length > 0 &&
+                <div className="UndoBlock">
                     <a onClick={onLocalStorageClear} title="Очистить историю распознаваний">
                         <FontAwesomeIcon className="UndoBlock_Icon" icon={faUndoAlt}/>
                     </a>

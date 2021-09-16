@@ -15,11 +15,11 @@ const ListSection = ({
                          setBlackList,
                          getWhiteList,
                          getBlackList,
-                         getRecognitionList
+                         recognitionList,
+                         transcript
                      }) => {
 
     const formRef = useRef(null);
-
 
     const onKeyWordEditClick = (listActive, setListActive) => {
         setListActive(prev => !prev)
@@ -32,15 +32,24 @@ const ListSection = ({
             return <Skeleton/>
         } else return <div className="BarChartList">
             {list?.map((item, index) => {
-                let textArray = getRecognitionList.flat().join(', ').split(' ')
+                let recognitionArrayLength = transcript.split(' ').reduce((n, val) => {
+                    return n + (val.toLowerCase().replace(/,/g, '') ===
+                        item.toLowerCase().replace(/,/g, ''))
+                }, 0)
+
+                let textArray = recognitionList.flat().join(', ').split(' ')
+
+                // console.log('recognitionList: ', recognitionList)
+                // console.log('textArray: ', textArray)
+
                 let barChartLength = textArray.reduce((n, val) => {
                     return n + (val.toLowerCase().replace(/,/g, '') ===
                         item.toLowerCase().replace(/,/g, ''))
                 }, 0)
 
                 return <div key={index} id={barChartLength} className="BarChart">
-                    <span className="BarChartName">{`${item}: ${barChartLength}`}</span>
-                    <Progress percent={barChartLength * 4} showInfo={false}/>
+                    <span className="BarChartName">{`${item}: ${barChartLength + recognitionArrayLength}`}</span>
+                    <Progress percent={(barChartLength + recognitionArrayLength) * 4} showInfo={false}/>
                 </div>
             })}
         </div>

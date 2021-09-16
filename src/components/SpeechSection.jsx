@@ -1,18 +1,17 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Card, Switch} from "antd";
 import {AudioMutedOutlined, AudioOutlined} from "@ant-design/icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBackspace, faMicrophoneAlt, faUndoAlt} from "@fortawesome/free-solid-svg-icons";
 import {faComment} from "@fortawesome/free-regular-svg-icons";
+import ScrollableFeed from "react-scrollable-feed";
 
 const SpeechSection = ({
                            onStartRecordClick,
                            onStopRecordClick,
                            isRecognitionStarted,
                            counter,
-                           setRecognitionTextResult,
-                           recognitionTextResult,
-                           getRecognitionList,
+                           resetTranscript,
                            whiteList,
                            blackList,
                            setRecognitionList,
@@ -20,7 +19,6 @@ const SpeechSection = ({
                            recognitionList
                        }) => {
 
-    const transcriptArray = transcript.split(' ')
 
     const onLocalStorageClear = () => {
         localStorage.removeItem('recognitionList')
@@ -31,13 +29,20 @@ const SpeechSection = ({
 
 
         return <div className="Text">
+            {/*<ShowMoreText*/}
+            {/*    lines={3}*/}
+            {/*    more="Раскрыть"*/}
+            {/*    less="Закрыть"*/}
+            {/*    truncatedEndingComponent={"... "}*/}
+            {/*>*/}
             {text?.map((item, index) => {
                 if (whiteList.includes(item.toLocaleLowerCase())) {
-                    return <div key={index} className="WhiteListWord">{item + ' '}</div>
+                    return <p key={index} className="WhiteListWord">{item + ' '}</p>
                 } else if (blackList.includes(item.toLocaleLowerCase())) {
-                    return <div key={index} className="BlackListWord">{item + ' '}</div>
-                } else return <div style={{display: 'inline'}} key={index}>{item + ' '}</div>
+                    return <p key={index} className="BlackListWord">{item + ' '}</p>
+                } else return <p key={index}>{item + ' '}</p>
             })}
+            {/*</ShowMoreText>*/}
         </div>
     }
 
@@ -68,7 +73,7 @@ const SpeechSection = ({
                                 00:{counter}
                             </div>}
                     </div>
-                    <a onClick={() => setRecognitionTextResult([])}>
+                    <a onClick={() => resetTranscript()}>
                         <FontAwesomeIcon className="ControlBlock_Clear" icon={faBackspace}/>
                     </a>
                 </div>
@@ -78,8 +83,9 @@ const SpeechSection = ({
                             {isRecognitionStarted ? 'Говорите...' : 'Включите микрофон для начала распознавания текста'}
                             <FontAwesomeIcon style={{marginLeft: 6}}
                                              icon={isRecognitionStarted ? faMicrophoneAlt : faComment}/>
-                        </h2> :
-                        <TextComponent text={transcript.split(' ')}/>
+                        </h2> : <ScrollableFeed className="Scrollable">
+                            <TextComponent text={transcript.split(' ')}/>
+                        </ScrollableFeed>
                     }
                 </Card>
             </div>

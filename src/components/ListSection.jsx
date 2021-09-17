@@ -1,10 +1,11 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Button, Card, Form, Input, message, Progress, Skeleton, Tag} from "antd";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faEdit} from "@fortawesome/free-solid-svg-icons";
 
 
 const ListSection = ({
+                         transcript,
                          isWhiteListActive,
                          setWhiteListActive,
                          whiteList,
@@ -16,44 +17,76 @@ const ListSection = ({
                          getWhiteList,
                          getBlackList,
                          recognitionList,
-                         transcript
                      }) => {
 
+    // let getWhiteListArray = JSON.parse(localStorage.getItem('whiteListArray'))
+    // let getBlackListArray = JSON.parse(localStorage.getItem('blackListArray'))
+    //
+    // if (getWhiteListArray === null) {
+    //     getWhiteListArray = []
+    // }
+    // if (getBlackListArray === null) {
+    //     getBlackListArray = []
+    // }
+
+    // const [whiteListObject, setWhiteListObject] = useState(Object.fromEntries(getWhiteListArray) ? Object.fromEntries(getWhiteListArray) : []);
+    // const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
+
     const formRef = useRef(null);
+    const textArray = recognitionList.flat().join(', ').split(' ').map(item => item.replace(/,/g, ''))
+
+
 
     const onKeyWordEditClick = (listActive, setListActive) => {
         setListActive(prev => !prev)
-
         formRef?.current?.focus();
     }
 
-    const BarChart = ({list, setList}) => {
+    const listToObject = (wordList, text) => {
+        const listObj = wordList.reduce((data, key) => {
+            // let
+
+            // console.log(whiteListObject[key])
+            // console.log(Object.fromEntries(whiteListObject))
+
+            // console.log(data)
+            data[key] = text.filter(x => {
+                if (x === key) {
+                    // whiteListObject[key] += 1;
+                    return x === key
+                }
+            }).length;
+            return data;
+        }, {});
+
+        const listEntries = Object.entries(listObj)
+
+
+        return listEntries.sort((a, b) => b[1] - a[1])
+    }
+
+    const whiteListArray = listToObject(whiteList, textArray)
+    const blackListArray = listToObject(blackList, textArray)
+
+    const BarChart = ({list, listName}) => {
         if (list.length === 0) {
             return <Skeleton/>
         } else return <div className="BarChartList">
             {list?.map((item, index) => {
-                let recognitionArrayLength = transcript.split(' ').reduce((n, val) => {
-                    return n + (val.toLowerCase().replace(/,/g, '') ===
-                        item.toLowerCase().replace(/,/g, ''))
-                }, 0)
-
-                let textArray = recognitionList.flat().join(', ').split(' ')
-
-                // console.log('recognitionList: ', recognitionList)
-                // console.log('textArray: ', textArray)
-
-                let barChartLength = textArray.reduce((n, val) => {
-                    return n + (val.toLowerCase().replace(/,/g, '') ===
-                        item.toLowerCase().replace(/,/g, ''))
-                }, 0)
-
-                return <div key={index} id={barChartLength} className="BarChart">
-                    <span className="BarChartName">{`${item}: ${barChartLength + recognitionArrayLength}`}</span>
-                    <Progress percent={(barChartLength + recognitionArrayLength) * 4} showInfo={false}/>
+                return <div key={index} className="BarChart">
+                    <div className="BarChart_Info">
+                        <span>{item[0]}:</span>
+                        <span>{item[1]}</span>
+                    </div>
+                    <Progress percent={(item[1]) * 4} showInfo={false}/>
                 </div>
             })}
         </div>
     }
+
+    // useEffect(() => {
+    //     localStorage.setItem('whiteListArray', JSON.stringify(Object.entries(whiteListObject)))
+    // }, [whiteListObject, whiteListArray])
 
     useEffect(() => {
         localStorage.setItem('whiteList', JSON.stringify(whiteList))
@@ -126,7 +159,7 @@ const ListSection = ({
                         <TagList list={whiteList} setList={setWhiteList} color={'blue'}/>
                         <ListForm setList={setWhiteList}/>
                     </div> :
-                    <BarChart list={whiteList} setList={setWhiteList}/>}
+                    <BarChart list={whiteListArray} listName={'whiteListObj'} setList={setWhiteList}/>}
             </Card>
             <Card className="BlackList" bordered={false}>
                 <div className="CardTitle">
@@ -140,7 +173,7 @@ const ListSection = ({
                         <TagList list={blackList} setList={setBlackList} color={'red'}/>
                         <ListForm setList={setBlackList}/>
                     </div> :
-                    <BarChart list={blackList} setList={setBlackList}/>}
+                    <BarChart list={blackListArray} listName={'blackListObj'} setList={setBlackList}/>}
             </Card>
         </div>
     );

@@ -15,6 +15,7 @@ const Main = () => {
     let getRecognitionList = JSON.parse(localStorage.getItem('recognitionList'))
     let getWhiteList = JSON.parse(localStorage.getItem('whiteList'))
     let getBlackList = JSON.parse(localStorage.getItem('blackList'))
+    let getCounter = JSON.parse(localStorage.getItem('counter'))
 
     const [isRecognitionStarted, setRecognitionStarted] = useState(false);
     const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
@@ -22,7 +23,8 @@ const Main = () => {
     const [isBlackListActive, setBlackListActive] = useState(false);
     const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
     const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
-    const [counter, setCounter] = useState(0)
+    const [counter, setCounter] = useState(getCounter ? getCounter : 20)
+    const [isCounterSettingActive, setCounterSettingActive] = useState(false)
 
     if (getRecognitionList === null) {
         getRecognitionList = []
@@ -37,7 +39,7 @@ const Main = () => {
     const onStartRecordClick = () => {
         if (!isRecognitionStarted) {
             setRecognitionStarted(true)
-            setCounter(15)
+            setCounter(getCounter)
 
             return SpeechRecognition.startListening({
                 continuous: true,
@@ -51,8 +53,8 @@ const Main = () => {
         if (isRecognitionStarted) {
             if (transcript.length > 0) {
                 if (recognitionList.length > 15) {
-                    localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList.slice(0, -1)]))
                     setRecognitionList(prev => [transcript, ...prev.slice(0, -1)])
+                    localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList.slice(0, -1)]))
                 } else {
                     setRecognitionList(prev => [transcript, ...prev])
                     localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList]))
@@ -111,23 +113,26 @@ const Main = () => {
         getWhiteList,
         getBlackList,
         transcript,
-        resetTranscript
+        resetTranscript,
+        isCounterSettingActive,
+        setCounterSettingActive,
+        setCounter
     }
 
     return (
         <Layout>
-            <Header className="header">
+            <Header>
                 <div className="Logo">
                     <img src={logo} alt="Logo"/>
                 </div>
             </Header>
-            <Content style={{padding: '0 50px'}}>
+            <Content>
                 <Layout className="Layout">
                     <SpeechSection {...props}/>
                     <ListSection {...props}/>
                 </Layout>
             </Content>
-            <Footer style={{textAlign: 'center'}}>Speech Recognition ©2021 Created by TTK Digital</Footer>
+            <Footer>2021 Kazan Digital Week</Footer>
         </Layout>
     );
 };

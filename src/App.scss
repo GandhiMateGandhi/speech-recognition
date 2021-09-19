@@ -324,6 +324,7 @@
 
       .ant-card-body {
         padding-right: 14px;
+        min-width: 200px;
       }
 
       .BarChartList {
@@ -369,7 +370,6 @@
 
       .ant-form {
         margin-top: 14px;
-        min-width: 150px;
 
         .AddTag {
           margin-bottom: 0;
@@ -388,6 +388,14 @@
 
         h2 {
           line-height: 30px;
+        }
+
+        .ListButtons {
+          display: flex;
+
+          .ListClear {
+            margin-right: 10px;
+          }
         }
 
         svg {

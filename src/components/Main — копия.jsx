@@ -17,9 +17,15 @@ const Main = () => {
     let getBlackList = JSON.parse(localStorage.getItem('blackList'))
     let getCounter = JSON.parse(localStorage.getItem('counter'))
 
-    if (getCounter === null) {
-        getCounter = 15
-    }
+    const [isRecognitionStarted, setRecognitionStarted] = useState(false);
+    const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
+    const [isWhiteListActive, setWhiteListActive] = useState(false);
+    const [isBlackListActive, setBlackListActive] = useState(false);
+    const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
+    const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
+    const [counter, setCounter] = useState(getCounter ? getCounter : 20)
+    const [isCounterSettingActive, setCounterSettingActive] = useState(false)
+
     if (getRecognitionList === null) {
         getRecognitionList = []
     }
@@ -29,16 +35,6 @@ const Main = () => {
     if (getBlackList === null) {
         getBlackList = []
     }
-
-    const [isRecognitionStarted, setRecognitionStarted] = useState(false);
-    const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
-    const [isWhiteListActive, setWhiteListActive] = useState(false);
-    const [isBlackListActive, setBlackListActive] = useState(false);
-    const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
-    const [blackList, setBlackList] = useState(getBlackList ? getBlackList : []);
-    const [counter, setCounter] = useState(getCounter ? getCounter : 20)
-    const [isCounterSettingActive, setCounterSettingActive] = useState(false)
-    const [newTranscript, setNewTranscript] = useState([])
 
     const onStartRecordClick = () => {
         if (!isRecognitionStarted) {
@@ -64,8 +60,9 @@ const Main = () => {
                     localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList]))
                 }
             }
-            setNewTranscript(transcript.split(' '))
+
             SpeechRecognition.abortListening()
+            console.log('stopListening')
             resetTranscript()
             setRecognitionStarted(false)
         }
@@ -113,12 +110,13 @@ const Main = () => {
         isBlackListActive,
         setBlackListActive,
         setBlackList,
+        getWhiteList,
+        getBlackList,
+        transcript,
         resetTranscript,
         isCounterSettingActive,
         setCounterSettingActive,
-        setCounter,
-        transcript,
-        newTranscript
+        setCounter
     }
 
     return (

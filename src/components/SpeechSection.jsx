@@ -50,11 +50,11 @@ const SpeechSection = ({
             {/*    truncatedEndingComponent={"... "}*/}
             {/*>*/}
             {text?.map((item, index) => {
-                if (whiteList.includes(item.toLocaleLowerCase())) {
+                if (whiteList.includes(item || item.toLocaleLowerCase())) {
                     return <p key={index} className="WhiteListWord">{item + ' '}</p>
-                } else if (blackList.includes(item.toLocaleLowerCase())) {
+                } else if (blackList.includes(item || item.toLocaleLowerCase())) {
                     return <p key={index} className="BlackListWord">{item + ' '}</p>
-                } else return <p key={index}>{item.toLocaleLowerCase() + ' '}</p>
+                } else return <p key={index}>{item + ' '}</p>
             })}
             {/*</ShowMoreText>*/}
         </div>

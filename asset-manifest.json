@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/speech-recognition/static/css/main.385215c5.chunk.css",
-    "main.js": "/speech-recognition/static/js/main.d0818ae2.chunk.js",
-    "main.js.map": "/speech-recognition/static/js/main.d0818ae2.chunk.js.map",
+    "main.css": "/speech-recognition/static/css/main.464b6f9d.chunk.css",
+    "main.js": "/speech-recognition/static/js/main.2781da82.chunk.js",
+    "main.js.map": "/speech-recognition/static/js/main.2781da82.chunk.js.map",
     "runtime-main.js": "/speech-recognition/static/js/runtime-main.ac56bac0.js",
     "runtime-main.js.map": "/speech-recognition/static/js/runtime-main.ac56bac0.js.map",
     "static/css/2.786ae0dd.chunk.css": "/speech-recognition/static/css/2.786ae0dd.chunk.css",
@@ -10,14 +10,14 @@
     "static/js/2.f492fbf9.chunk.js.map": "/speech-recognition/static/js/2.f492fbf9.chunk.js.map",
     "index.html": "/speech-recognition/index.html",
     "static/css/2.786ae0dd.chunk.css.map": "/speech-recognition/static/css/2.786ae0dd.chunk.css.map",
-    "static/css/main.385215c5.chunk.css.map": "/speech-recognition/static/css/main.385215c5.chunk.css.map",
+    "static/css/main.464b6f9d.chunk.css.map": "/speech-recognition/static/css/main.464b6f9d.chunk.css.map",
     "static/js/2.f492fbf9.chunk.js.LICENSE.txt": "/speech-recognition/static/js/2.f492fbf9.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.ac56bac0.js",
     "static/css/2.786ae0dd.chunk.css",
     "static/js/2.f492fbf9.chunk.js",
-    "static/css/main.385215c5.chunk.css",
-    "static/js/main.d0818ae2.chunk.js"
+    "static/css/main.464b6f9d.chunk.css",
+    "static/js/main.2781da82.chunk.js"
   ]
 }

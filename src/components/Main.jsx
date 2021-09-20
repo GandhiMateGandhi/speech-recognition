@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Content, Footer, Header} from "antd/es/layout/layout";
 import {Layout} from "antd";
-import logo from '../img/logo.png'
+import logo from '../img/letai.png'
 import SpeechSection from "./SpeechSection";
 import ListSection from "./ListSection";
 import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
@@ -13,6 +13,7 @@ const Main = () => {
     } = useSpeechRecognition();
 
     let getRecognitionList = JSON.parse(localStorage.getItem('recognitionList'))
+    let getRecognitionListLS = JSON.parse(localStorage.getItem('recognitionListLS'))
     let getWhiteList = JSON.parse(localStorage.getItem('whiteList'))
     let getBlackList = JSON.parse(localStorage.getItem('blackList'))
     let getCounter = JSON.parse(localStorage.getItem('counter'))
@@ -23,6 +24,9 @@ const Main = () => {
     if (getRecognitionList === null) {
         getRecognitionList = []
     }
+    if (getRecognitionListLS === null) {
+        getRecognitionListLS = []
+    }
     if (getWhiteList === null) {
         getWhiteList = []
     }
@@ -32,6 +36,7 @@ const Main = () => {
 
     const [isRecognitionStarted, setRecognitionStarted] = useState(false);
     const [recognitionList, setRecognitionList] = useState(getRecognitionList ? getRecognitionList : []);
+    const [recognitionListLS, setRecognitionListLS] = useState(getRecognitionListLS ? getRecognitionListLS : []);
     const [isWhiteListActive, setWhiteListActive] = useState(false);
     const [isBlackListActive, setBlackListActive] = useState(false);
     const [whiteList, setWhiteList] = useState(getWhiteList ? getWhiteList : []);
@@ -62,6 +67,10 @@ const Main = () => {
                 } else {
                     setRecognitionList(prev => [transcript, ...prev])
                     localStorage.setItem('recognitionList', JSON.stringify([transcript, ...recognitionList]))
+
+                    setRecognitionListLS(prev => [transcript, ...prev])
+                    localStorage.setItem('recognitionListLS', JSON.stringify([transcript, ...recognitionListLS]));
+
                 }
             }
             setNewTranscript(transcript.split(' '))
@@ -105,6 +114,7 @@ const Main = () => {
         counter,
         recognitionList,
         setRecognitionList,
+        recognitionListLS,
         whiteList,
         blackList,
         isWhiteListActive,

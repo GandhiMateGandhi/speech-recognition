@@ -52,7 +52,7 @@ const SpeechSection = ({
             {text?.map((item, index) => {
                 if (whiteList.includes(item || item.toLocaleLowerCase())) {
                     return <p key={index} className="WhiteListWord">{item + ' '}</p>
-                } else if (blackList.includes(item || item.toLocaleLowerCase())) {
+                } else if (blackList.includes(item.toLocaleLowerCase())) {
                     return <p key={index} className="BlackListWord">{item + ' '}</p>
                 } else return <p key={index}>{item + ' '}</p>
             })}

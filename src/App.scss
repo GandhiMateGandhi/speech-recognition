@@ -26,7 +26,7 @@
 
   .Logo {
     img {
-      max-width: 200px;
+      max-width: 180px;
     }
   }
 
@@ -46,7 +46,14 @@
   .SpeechSection {
     padding: 0 20px;
     display: grid;
-    grid-template-rows: 50px minmax(100px, 150px) 50px minmax(400px, 500px);
+
+    //@media (min-height: 600px) {
+    grid-template-rows: 50px minmax(50px, 150px) 50px minmax(200px, 300px);
+    //}
+
+    @media (min-height: 800px) {
+      grid-template-rows: 50px minmax(50px, 200px) 50px minmax(200px, 400px);
+    }
 
     .ControlBlock {
       display: flex;
@@ -189,6 +196,8 @@
 
       h2 {
         padding: 12px 24px;
+        font-size: 28px;
+
       }
 
       .WhiteListWord {
@@ -210,9 +219,10 @@
         //margin: 0 2px;
       }
 
-      .Text__italic {
-        color: #868686;
+      .Text {
+        font-size: 26px;
       }
+
     }
 
     .TextBlock {
@@ -223,6 +233,7 @@
       padding-right: 6px;
 
       .Text {
+        font-size: 24px;
         padding: 10px 20px;
         box-shadow: rgba(50, 50, 93, 0.25) 0 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
         background: #f0f2f5;
@@ -327,9 +338,7 @@
         min-width: 200px;
       }
 
-      .BarChartList {
-        max-height: 280px;
-        overflow-y: auto;
+      .ListScroll {
         padding-right: 10px;
         margin-top: 6px;
 
@@ -353,9 +362,9 @@
         margin-top: 6px;
 
         &_Info {
-          font-size: 16px;
-          height: 16px;
-          line-height: 16px;
+          font-size: 24px;
+          height: 20px;
+          line-height: 20px;
           display: flex;
           justify-content: space-between;
         }
@@ -388,6 +397,7 @@
 
         h2 {
           line-height: 30px;
+          font-size: 28px;
         }
 
         .ListButtons {
@@ -410,6 +420,15 @@
 
         .svg-inline--fa.fa-w-14 {
           width: 1.125em;
+        }
+      }
+
+      .ListScroll {
+        max-height: 172px;
+        overflow-y: auto;
+
+        @media (min-height: 800px) {
+          max-height: 248px;
         }
       }
 

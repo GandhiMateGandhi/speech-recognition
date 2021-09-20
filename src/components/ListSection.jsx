@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Button, Card, Form, Input, message, Popconfirm, Progress, Skeleton, Tag} from "antd";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faEdit, faUndoAlt} from "@fortawesome/free-solid-svg-icons";
+import {text} from "@fortawesome/fontawesome-svg-core";
 
 
 const ListSection = ({
@@ -14,13 +15,14 @@ const ListSection = ({
                          blackList,
                          setBlackList,
                          recognitionList,
+                         recognitionListLS,
                          newTranscript
                      }) => {
 
     const formRef = useRef(null);
     const isInitialWhiteListMount = useRef(true);
     const isInitialBlackListMount = useRef(true);
-    const textArray = recognitionList.join(', ').split(' ').map(item => item.replace(/,/g, ''))
+    const textArray = recognitionListLS.join(', ').split(' ').map(item => item.replace(/,/g, ''))
 
     const [whiteListCounter, setWhiteListCounter] = useState(JSON.parse(localStorage.getItem('whiteListCounter')) ?? []);
     const [blackListCounter, setBlackListCounter] = useState(JSON.parse(localStorage.getItem('blackListCounter')) ?? []);
@@ -34,26 +36,20 @@ const ListSection = ({
     }, [blackList])
 
     useEffect(() => {
-        if (isInitialWhiteListMount.current) {
-            isInitialWhiteListMount.current = false;
-        } else {
-            // const found = newTranscript.some(r => whiteList.includes(r))
-            // if (found) {
-                let newWhiteListCounter = listToObject(whiteList, textArray, whiteListCounter)
-                setWhiteListCounter(newWhiteListCounter);
-                localStorage.setItem('whiteListCounter', JSON.stringify(newWhiteListCounter));
-            // }
-        }
+        // if (isInitialWhiteListMount.current) {
+        //     isInitialWhiteListMount.current = false;
+        // } else {
+        let newWhiteListCounter = listToObject(whiteList, textArray, whiteListCounter)
+        setWhiteListCounter(newWhiteListCounter);
+
+        localStorage.setItem('whiteListCounter', JSON.stringify(newWhiteListCounter));
+        // }
     }, [whiteList, recognitionList])
 
     useEffect(() => {
-        if (isInitialBlackListMount.current) {
-            isInitialBlackListMount.current = false;
-        } else {
-            let newBlackListCounter = listToObject(blackList, textArray, blackListCounter)
-            setBlackListCounter(newBlackListCounter);
-            localStorage.setItem('blackListCounter', JSON.stringify(newBlackListCounter));
-        }
+        let newBlackListCounter = listToObject(blackList, textArray, blackListCounter)
+        setBlackListCounter(newBlackListCounter);
+        localStorage.setItem('blackListCounter', JSON.stringify(newBlackListCounter));
     }, [blackList, recognitionList])
 
     const onKeyWordEditClick = (listActive, setListActive) => {
@@ -63,38 +59,50 @@ const ListSection = ({
 
     const listToObject = (filterList, recognitionText, counterList) => {
         const listObj = filterList.reduce((data, key) => {
-            data[key] = recognitionText.filter(x => x === key).length;
+            data[key] = recognitionText.filter(x => x.toLowerCase() === key.toLowerCase()).length;
             return data;
         }, {});
 
+        // console.log(listObj)
+
+        const transcriptArray = Object.entries(filterList.reduce((data, key) => {
+            data[key] = newTranscript.filter(x => x === key).length;
+            return data;
+        }, {}));
+
+        // console.log(transcriptArray)
+
         let listEntries = Object.entries(listObj)
-        // listEntries = mergeArrays(listEntries, counterList);
+        // listEntries = mergeArrays(listEntries, counterList, transcriptArray);
 
         return listEntries.sort((a, b) => b[1] - a[1])
     }
 
-    const mergeArrays = (arrayRL, arrayLS) => {
+    const mergeArrays = (arrayRL, arrayLS, transcriptArray) => {
 
         let prevArray = [...arrayRL].map((wordRL, index) => {
-            const found = arrayRL.some(r=> newTranscript.includes(r[0]))
-            console.log(found)
+            const found = arrayRL.some(r => newTranscript.includes(r[0]))
+            // console.log(found)
 
-            let collision = arrayLS.find(keyWord => (keyWord[0] === wordRL[0]));
+            let collision = transcriptArray.find(keyWord => (keyWord[0] === wordRL[0]));
             if (collision && found) {
-                console.log([collision[0], collision[1]])
+                // console.log([collision[0], collision[1] + wordRL[1]])
                 return [collision[0], collision[1] + wordRL[1]]
             }
             return wordRL;
         })
 
-        let newArray = [...arrayLS];
-        arrayLS.forEach((item) => {
+        // console.log(arrayLS)
+        // console.log(transcriptArray)
+
+        let newArray = [...transcriptArray];
+        transcriptArray.forEach((item) => {
             if (prevArray.find(el => el[0] === item[0])) {
                 newArray = newArray.filter(vim => vim !== item)
             }
         })
 
-        return [...prevArray];
+        return [...prevArray, ...newArray];
     }
 
     const ListClearButton = ({clearList}) => {
@@ -107,6 +115,7 @@ const ListSection = ({
                 setBlackList([])
                 setBlackListCounter([])
             }
+            localStorage.removeItem('recognitionListLS')
             localStorage.removeItem(clearList)
         }
 
@@ -143,7 +152,7 @@ const ListSection = ({
                 name="tag"
                 rules={[{required: true, message: 'Ключевое слово не может быть пустым!'}]}
                 label={<b>Ключевые слова</b>}>
-                <Input autoFocus ref={formRef}/>
+                <Input autoFocus autoComplete='off' ref={formRef}/>
             </Form.Item>
             <Form.Item className="AddTag">
                 <Button shape="round" type="primary" htmlType="submit">
@@ -202,13 +211,15 @@ const ListSection = ({
                         </a>
                     </div>
                 </div>
-                {isWhiteListActive ?
-                    <div className="TagForm">
-                        <TagList list={whiteList} setList={setWhiteList} color={'blue'}/>
-                        <ListForm setList={setWhiteList}/>
-                    </div> :
-                    <BarChart list={whiteListCounter} listName={whiteList} setList={setWhiteList}/>
-                }
+                <div className="ListScroll">
+                    {isWhiteListActive ?
+                        <div className="TagForm">
+                            <TagList list={whiteList} setList={setWhiteList} color={'blue'}/>
+                            <ListForm setList={setWhiteList}/>
+                        </div> :
+                        <BarChart list={whiteListCounter} listName={whiteList} setList={setWhiteList}/>
+                    }
+                </div>
             </Card>
             <Card className="BlackList" bordered={false}>
                 <div className="CardTitle">
@@ -221,14 +232,17 @@ const ListSection = ({
                         </a>
                     </div>
                 </div>
-                {isBlackListActive ?
-                    <div className="TagForm">
-                        <TagList list={blackList} setList={setBlackList} color={'red'}/>
-                        <ListForm setList={setBlackList}/>
-                    </div> :
-                    // <></>
-                    <BarChart list={blackListCounter} listName={blackList} setList={setBlackList}/>
-                }
+                <div className="ListScroll">
+
+                    {isBlackListActive ?
+                        <div className="TagForm">
+                            <TagList list={blackList} setList={setBlackList} color={'red'}/>
+                            <ListForm setList={setBlackList}/>
+                        </div> :
+                        // <></>
+                        <BarChart list={blackListCounter} listName={blackList} setList={setBlackList}/>
+                    }
+                </div>
             </Card>
         </div>
     );
